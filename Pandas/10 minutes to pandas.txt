@@ -1,0 +1,351 @@
+Կրկնօրինակ պիտակները
+Ինդեքսային օբյեկտները չեն պահանջվում եզակի լինել. կարող եք ունենալ կրկնակի տողի կամ սյունակի պիտակներ: Սկզբում սա կարող է մի փոքր շփոթեցնող լինել: Եթե դուք ծանոթ եք SQL- ին, գիտեք, որ տողի պիտակները նման են սեղանի հիմնական բանալին, և դուք երբեք չէիք ցանկանա կրկնօրինակներ կատարել SQL աղյուսակում: Բայց պանդաների դերերից մեկը խառնաշփոթ, իրական աշխարհի տվյալները մաքրելն է ՝ նախքան դրանք հոսանքային հոսքի ներքևում գտնվող համակարգ անցնելը: Իսկ իրական աշխարհի տվյալներն ունեն կրկնօրինակներ, նույնիսկ այն դաշտերում, որոնք ենթադրաբար եզակի են:
+
+Այս բաժնում նկարագրվում է, թե ինչպես կրկնօրինակ պիտակները փոխում են որոշակի գործողությունների վարքագիծը, և ինչպես են կանխում կրկնօրինակների առաջացումը գործողությունների ընթացքում կամ դրանց հայտնաբերման դեպքում:
+
+Կրկնօրինակ պիտակների հետևանքները
+Պանդաների որոշ մեթոդներ (օրինակ, Series.reindex ()) պարզապես չեն գործում առկա կրկնօրինակների հետ: Արդյունքը հնարավոր չէ որոշել, ուստի պանդաները բարձրանում են:
+
+>>> s1 = pd.Series([0, 1, 2], index=["a", "b", "b"])
+s1.reindex(["a", "b", "c"])
+
+# https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
+>>> import numpy as np
+>>> import pandas as pd
+>>> s = pd.Series([1, 3, 5, np.nan, 6, 8])
+# Creating a DataFrame by passing a NumPy array, with a datetime index and labeled columns:
+>>> dates = pd.date_range("20130101", periods=6)
+>>> df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list("ABCD"))
+# Creating a DataFrame by passing a dict of objects that can be converted to series-like.
+>>> df2 = pd.DataFrame(
+...     {
+...         "A": 1.0,
+...         "B": pd.Timestamp("20130102"),
+...         "C": pd.Series(1, index=list(range(4)), dtype="float32"),
+...         "D": np.array([3] * 4, dtype="int32"),
+...         "E": pd.Categorical(["test", "train", "test", "train"]),
+...         "F": "foo",
+...     }
+... )
+# The columns of the resulting DataFrame have different dtypes.
+>>> df2.dtypes
+# If you’re using IPython, tab completion for column names (as well as public attributes) is automatically enabled. Here’s a subset of the attributes that will be completed:
+>>>>>> # As you can see, the columns A, B, C, and D are automatically tab completed. E and F are there as well; the rest of the attributes have been truncated for brevity.
+>>> # Here is how to view the top and bottom rows of the frame:
+>>> df.head()
+>>> df.tail(3)
+>>> # Display the index, columns:
+>>> df.index
+>>> df.columns
+>>> # DataFrame.to_numpy() gives a NumPy representation of the underlying data. Note that this can be an expensive operation when your DataFrame has columns with different data types, which comes down to a fundamental difference between pandas and NumPy: NumPy arrays have one dtype for the entire array, while pandas DataFrames have one dtype per column. When you call DataFrame.to_numpy(), pandas will find the NumPy dtype that can hold all of the dtypes in the DataFrame. This may end up being object, which requires casting every value to a Python object.
+>>> # For df, our DataFrame of all floating-point values, DataFrame.to_numpy() is fast and doesn’t require copying data.
+>>> df.to_numpy()
+>>> # For df2, the DataFrame with multiple dtypes, DataFrame.to_numpy() is relatively expensive.
+>>> df2.to_numpy()
+>>> # DataFrame.to_numpy() does not include the index or column labels in the output.
+>>> # describe() shows a quick statistic summary of your data:
+>>> df.describe()
+>>> # Transposing your data:
+>>> df.T
+>>> # Sorting by an axis:
+
+>>> df.to_json('test.json')   
+>>> df = pd.read_json('test.json')
+
+>>> df.sort_index(axis=1, ascending=False) # Ըստ սյուների
+>>> df.sort_values(by="B") # Ըստ B-ի տողերի
+
+Ընտրանքներ
+
+>>> df["A"] # Ընտրել "A"-սյունը
+>>> df[0:3]  # Ընտրել 0,0,2<3 տողերը
+>>> df["20130102":"20130104"] # Ընտրել "20130102":"20130104" տողերը
+>>> df.loc[dates[0]] # Ընտրել "0"-տողը
+>>> df.loc[:, ["A", "B"]] # Ընտրել "A", "B"-սյուները
+>>> df.loc["20130102":"20130104", ["A", "B"]] # Ընտրել "20130102":"20130104"-տողերին համապատասխան "A", "B"-սյուները
+>>> df.loc[dates[0], "A"] # Ընտրել "0", "A"-բջիջը
+>>> df.at[dates[0], "A"] # Ընտրել "0", "A"-բջիջը
+
+Ընտրանքներ ըստ դիրքի
+
+>>> df.iloc[3] # Ընտրել "0"-տողը
+>>> df.iloc[3:5, 0:2]  # Ընտրել "3:5"-տողերի 0:2 սյուները
+>>> df.iloc[[1, 2, 4], [0, 2]] # Ընտրել [1, 2, 4]-տողերի 0:2 սյուները
+>>> df.iloc[1:3, :] # Ընտրել 1:3-տողերը
+>>> df.iloc[:, 1:3] # Ընտրել 1:3 սյուները
+>>> df.iloc[1, 1]  # Ընտրել "1", "1"-բջիջը
+>>> df.iat[1, 1] # Ընտրել "1", "1"-բջիջը - արագ տարբերակ
+>>> df[df["A"] > 0] # Ընտրել 1:3-տողերը, որոնց "A" սյան արժեքը  > 0
+>>> df[df > 0]  # Ընտրել բջիջները, արժեքը  > 0
+>>> df2 = df.copy() # կրկնօրինակը
+>>> df2["E"] = ["one", "one", "two", "three", "four", "three"] # Ավելացնել "E" - սյունը
+>>> df2[df2["E"].isin(["two", "four"])] # Ընտրել տողերը ըստ պայմանի
+
+Պարամետր - Setting
+
+>>> s1 = pd.Series([1, 2, 3, 4, 5, 6], index=pd.date_range("20130102", periods=6)) # Առաջին սյունը փոխարինել տրվածով
+>>> df["F"] = s1  # Ավելացնել "F" սյունը և փոխարինել տրվածով s1
+>>> df.iat[0, 1] = 0 # փոխել բջջի արժեըը 0 ըստ դիրքի
+>>> df.at[dates[0], "A"] = 0 # փոխել բջջի արժեըը 0  ըստ նիշի
+>>> df.loc[:, "D"] = np.array([5] * len(df)) # փոխել "D" սյան  արժեըները  (5)
+>>> df2 = df.copy()
+>>> df2[df2 > 0] = -df2 # փոխել պարամետրերը ըստ պայմանի
+
+Բացակայող տվյալներ
+
+>>> df = pd.read_json('tmp.json')
+# df = pd.read_csv('tmp.csv')
+# df = pd.read_fwf('tmp.csv')
+dates = pd.date_range("20130101", periods=6)
+
+pandas- ը հիմնականում օգտագործում է np.nan արժեքը `բացակայող տվյալները ներկայացնելու համար: Այն լռելյայն ներառված չէ հաշվարկների մեջ: Տե՛ս «Բացակայող տվյալներ» բաժինը:
+
+Վերաինդեքսավորումը թույլ է տալիս փոխել / ավելացնել / ջնջել ինդեքսը նշված առանցքի վրա: Սա վերադարձնում է տվյալների պատճենը: 
+
+>>> df.dtypes
+A    float64
+B    float64
+C    float64
+D      int32
+F    float64
+dtype: object
+>>> df.loc[:, "D"] = np.array([5] * len(df))
+>>> df1 = df.reindex(index=dates[0:4], columns=list(df.columns) + ["E"])
+>>> df1.loc[dates[0] : dates[1], "E"] = 1
+To drop any rows that have missing data.
+>>> df1.dropna(how="any")
+Filling missing data.
+>>> df1.fillna(value=5)
+To get the boolean mask where values are nan.
+>>> pd.isna(df1)
+
+Operations
+
+Stats
+
+>>> df.mean() # operation on the axis:0
+>>> df.mean(1) # Same operation on the other axis:1
+
+Operating with objects that have different dimensionality and need alignment. In addition, pandas automatically broadcasts along the specified dimension.
+
+>>> import pandas as pd
+>>> import numpy as np
+>>> df = pd.read_json('tmp.json')
+>>> df.mean()
+>>> df.mean(1)
+>>> s = pd.Series([1, 3, 5, np.nan, 6, 8], index=dates).shift(2)
+>>> del df["E"]
+>>> df.sub(s, axis="index")
+>>> df.apply(lambda x: x.max() - x.min())
+>>> s = pd.Series(np.random.randint(0, 7, size=10))
+>>> s.value_counts()
+>>> s = pd.Series(["A", "B", "C", "Aaba", "Baca", np.nan, "CABA", "dog", "cat"])
+>>> df = pd.DataFrame(np.random.randn(10, 4))
+>>> pieces = [df[:3], df[3:7], df[7:]]
+>>> pd.concat(pieces)
+>>> left = pd.DataFrame({"key": ["foo", "foo"], "lval": [1, 2]})
+>>> right = pd.DataFrame({"key": ["foo", "foo"], "rval": [4, 5]})
+>>> pd.merge(left, right, on="key") #  merge down
+
+>>> left = pd.DataFrame({"key": ["foo", "bar"], "lval": [1, 2]})
+>>> right = pd.DataFrame({"key": ["foo", "bar"], "rval": [4, 5]})                                                        
+>>> pd.merge(left, right, on="key") # merge left
+
+>>> df = pd.DataFrame(
+...     {
+...         "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
+...         "B": ["one", "one", "two", "three", "two", "two", "one", "three"],
+...         "C": np.random.randn(8),
+...         "D": np.random.randn(8),
+...     }
+... )
+>>> # Grouping and then applying the sum() function to the resulting groups.
+>>> df.groupby("A").sum()
+>>> # Grouping by multiple columns forms a hierarchical index, and again we can apply the sum() function.
+>>> In [90]: df.groupby(["A", "B"]).sum()  
+>>> df.groupby(["A", "B"]).sum()
+>>> tuples = list(
+...     zip(
+...         *[
+...             ["bar", "bar", "baz", "baz", "foo", "foo", "qux", "qux"],
+...             ["one", "two", "one", "two", "one", "two", "one", "two"],
+...         ]
+...     )
+... )
+>>> index = pd.MultiIndex.from_tuples(tuples, names=["first", "second"])
+>>> df = pd.DataFrame(np.random.randn(8, 2), index=index, columns=["A", "B"])
+>>> df2 = df[:4]
+>>> # The stack() method “compresses” a level in the DataFrame’s columns. 
+>>> stacked = df2.stack()
+>>> # With a “stacked” DataFrame or Series (having a MultiIndex as the index), the inverse operation of stack() is unstack(), which by default unstacks the last level:
+>>> stacked.unstack()
+>>> stacked.unstack(1)
+>>> stacked.unstack(0)
+
+# ========================================
+
+>>> df = pd.read_json('titanic.json')
+>>> df.head()
+>>> df.info()
+>>> df.to_json('elq.json')
+# ========================================
+
+>>> URL = 'http://raw.githubusercontent.com/BindiChen/machine-learning/master/data-analysis/027-pandas-convert-json/data/simple.json'
+>>> df = pd.read_json(URL)
+# ========================================
+# https://towardsdatascience.com/how-to-convert-json-into-a-pandas-dataframe-100b2ae1e0d8
+>>> df = pd.read_json('nested_list.json')
+# ========================================
+>>> with open('nested_mix.json','r') as f:      
+...     data = json.loads(f.read())
+... 
+>>> data
+{'school_name': 'local primary school', 'class': 'Year 1', 'info': {'president': 'John Kasich', 'address': 'ABC road, London, UK', 'contacts': {'email': 'admin@e.com', 'tel': '123456789'}}, 'students': [{'id': 'A001', 'name': 'Tom', 'math': 60, 'physics': 66, 'chemistry': 61}, {'id': 'A002', 'name': 'James', 'math': 89, 'physics': 76, 'chemistry': 51}, {'id': 'A003', 'name': 'Jenny', 'math': 79, 'physics': 90, 'chemistry': 78}]}
+>>> # Normalizing data
+>>> df = pd.json_normalize(data, record_path =['students'])
+>>> df
+     id   name  math  physics  chemistry
+0  A001    Tom    60       66         61
+1  A002  James    89       76         51
+2  A003  Jenny    79       90         78
+# ========================================
+
+>>> df = pd.json_normalize(
+...     data, 
+...     record_path =['students'], 
+...     meta=[
+...         'class',
+...         ['info', 'president'],
+...         ['info', 'contacts', 'tel']
+...     ]
+... )
+>>> df
+     id   name  math  physics  chemistry   class info.president info.contacts.tel
+0  A001    Tom    60       66         61  Year 1    John Kasich         123456789
+1  A002  James    89       76         51  Year 1    John Kasich         123456789
+2  A003  Jenny    79       90         78  Year 1    John Kasich         123456789
+# ========================================
+
+Pivot tables
+
+>>> df = pd.DataFrame(
+...     {
+...         "A": ["one", "one", "two", "three"] * 3,
+...         "B": ["A", "B", "C"] * 4,
+...         "C": ["foo", "foo", "foo", "bar", "bar", "bar"] * 2,
+...         "D": np.random.randn(12),
+...         "E": np.random.randn(12),
+...     }
+... )
+>>> # We can produce pivot tables from this data very easily:      
+>>> pd.pivot_table(df, values="D", index=["A", "B"], columns=["C"])
+C             bar       foo
+A     B
+one   A  1.393441 -1.286472
+      B -3.138350  1.359911
+      C  2.510933  1.722508
+three A -0.880749       NaN
+      B       NaN  2.317729
+      C -1.273401       NaN
+two   A       NaN -2.191099
+      B -0.071625       NaN
+      C       NaN -0.230525
+
+Time series
+
+>>> # pandas has simple, powerful, and efficient functionality for performing resampling operations during frequency conversion (e.g., converting # #  secondly data into 5-minutely data). This is extremely common in, but not limited to, financial applications. See the Time Series section.
+>>> rng = pd.date_range("1/1/2012", periods=100, freq="S")
+>>> ts = pd.Series(np.random.randint(0, 500, len(rng)), index=rng)
+>>> ts.resample("5Min").sum()
+>>> # Time zone representation:
+>>> rng = pd.date_range("3/6/2012 00:00", periods=5, freq="D")
+>>> ts = pd.Series(np.random.randn(len(rng)), rng)
+>>> ts_utc = ts.tz_localize("UTC")
+>>> # Converting to another time zone:
+>>> ts_utc.tz_convert("US/Eastern")
+>>> # Converting between time span representations:
+>>> rng = pd.date_range("1/1/2012", periods=5, freq="M")
+>>> ts = pd.Series(np.random.randn(len(rng)), index=rng)
+>>> ps = ts.to_period()
+>>> ps.to_timestamp()
+>>> # Converting between period and timestamp enables some convenient arithmetic functions to be used. In the following example, we convert a quarterly frequency with year ending in November to 9am of the end of the month following the quarter end:
+>>> prng = pd.period_range("1990Q1", "2000Q4", freq="Q-NOV")
+>>> ts = pd.Series(np.random.randn(len(prng)), prng)
+>>> ts.index = (prng.asfreq("M", "e") + 1).asfreq("H", "s") + 9
+>>> ts.head()
+
+# Categoricals¶
+# pandas can include categorical data in a DataFrame. For full docs, see the categorical introduction and the API documentation.
+
+df = pd.DataFrame(
+    {"id": [1, 2, 3, 4, 5, 6], "raw_grade": ["a", "b", "b", "a", "a", "e"]}
+)
+
+>>> df = pd.DataFrame(
+...     {"id": [1, 2, 3, 4, 5, 6], "raw_grade": ["a", "b", "b", "a", "a", "e"]}
+... )
+>>> # Convert the raw grades to a categorical data type.
+>>> df["grade"] = df["raw_grade"].astype("category")    
+>>> df["grade"]
+>>> # Rename the categories to more meaningful names (assigning to Series.cat.categories() is in place!).
+>>> df["grade"].cat.categories = ["very good", "good", "very bad"]
+>>> # Reorder the categories and simultaneously add the missing categories (methods under Series.cat() return a new Series by default).
+>>> df["grade"] = df["grade"].cat.set_categories(
+...     ["very bad", "bad", "medium", "good", "very good"]
+... )
+>>> df["grade"]
+>>> # Grouping by a categorical column also shows empty categories.
+>>> df.groupby("grade").size()
+>>> import matplotlib.pyplot as plt
+>>> # Plotting
+>>> # See the Plotting docs.
+>>> import matplotlib.pyplot as plt
+>>> plt.close("all")
+>>> ts = pd.Series(np.random.randn(1000), index=pd.date_range("1/1/2000", periods=1000))
+>>> ts = ts.cumsum()
+>>> ts.plot()
+>>> # On a DataFrame, the plot() method is a convenience to plot all of the columns with labels:
+>>> df = pd.DataFrame(
+...      np.random.randn(1000, 4), index=ts.index, columns=["A", "B", "C", "D"]
+... )
+>>> df = df.cumsum()
+>>> plt.figure()
+>>> df.plot()
+>>> plt.legend(loc='best')
+
+>>> # Getting data in/out¶
+>>> # CSV
+>>> # Writing to a csv file.
+>>> df.to_csv("foo.csv")
+>>> # Reading from a csv file.
+>>> pd.read_csv("foo.csv")
+>>> # HDF5
+>>> # Reading and writing to HDFStores.
+>>> # Writing to a HDF5 Store.
+>>> df.to_hdf("foo.h5", "df")
+>>> # Reading from a HDF5 Store.
+>>> pd.read_hdf("foo.h5", "df")
+
+# Reading from a HDF5 Store.
+pd.read_hdf("foo.h5", "df")
+
+# Excel
+# Reading and writing to MS Excel.
+
+# Writing to an excel file.
+df.to_excel("foo.xlsx", sheet_name="Sheet1")
+# Reading from an excel file.
+pd.read_excel("foo.xlsx", "Sheet1", index_col=None, na_values=["NA"])
+
+# Gotchas
+# If you are attempting to perform an operation you might see an exception like:
+if pd.Series([False, True, False]):
+	print("I was true")
+
+>>> import pandas as pd         
+>>> import numpy as np  
+>>> df = pd.read_csv("foo.csv")
+>>> from openpyxl import Workbook
+>>> wb = Workbook() 
+>>> ws = wb.active
+>>> df.to_excel("foo1.xlsx", sheet_name="Sheet1")
